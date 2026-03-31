@@ -1,0 +1,14 @@
+{
+  "name": "windows-service-monitor",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "agent",
+    "dashboard"
+  ],
+  "scripts": {
+    "build": "npm run build -w agent && npm run build -w dashboard",
+    "dev": "echo \"Run npm run dev -w agent or npm run dev -w dashboard\"",
+    "format": "echo \"TODO: add prettier\""
+  }
+}

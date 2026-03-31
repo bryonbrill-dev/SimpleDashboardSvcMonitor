@@ -1,0 +1,28 @@
+<%- include('../partials/header', { title: 'Dashboard', path, currentUser }) %>
+<div class="row g-3 mb-4">
+  <div class="col-md-2"><div class="kpi-card"><h6>Machines</h6><h3><%= stats.machines %></h3></div></div>
+  <div class="col-md-2"><div class="kpi-card"><h6>Services</h6><h3><%= stats.services %></h3></div></div>
+  <div class="col-md-2"><div class="kpi-card success"><h6>UP</h6><h3><%= stats.upCount %></h3></div></div>
+  <div class="col-md-2"><div class="kpi-card danger"><h6>DOWN</h6><h3><%= stats.downCount %></h3></div></div>
+  <div class="col-md-4"><div class="kpi-card"><h6>Last Successful Poll</h6><h6><%= stats.lastPoll ? stats.lastPoll.toISOString() : 'Never' %></h6></div></div>
+</div>
+<div class="card">
+  <div class="card-header">Recent Events</div>
+  <div class="card-body p-0">
+    <table class="table table-dark table-striped m-0">
+      <thead><tr><th>Time</th><th>Machine</th><th>Service</th><th>Event</th><th>Message</th></tr></thead>
+      <tbody>
+        <% events.forEach((event) => { %>
+        <tr>
+          <td><%= event.createdAt.toISOString() %></td>
+          <td><%= event.machine?.name || '-' %></td>
+          <td><%= event.monitoredService?.serviceName || '-' %></td>
+          <td><span class="badge bg-info"><%= event.eventType %></span></td>
+          <td><%= event.message %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

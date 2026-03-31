@@ -1,0 +1,9 @@
+<%- include('../partials/header', { title: 'Admin Settings', path, currentUser }) %>
+<div class="card"><div class="card-header">Local Users</div><div class="card-body">
+  <p class="text-muted">MVP auth uses local users. TODO: integrate LDAP/SSO adapters.</p>
+  <table class="table table-dark">
+    <thead><tr><th>Username</th><th>Created</th></tr></thead>
+    <tbody><% users.forEach((u) => { %><tr><td><%= u.username %></td><td><%= u.createdAt.toISOString() %></td></tr><% }) %></tbody>
+  </table>
+</div></div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> | Windows Service Monitor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="/public/css/admin.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">WSM</div>
+        <nav>
+          <a class="<%= path === '/' ? 'active' : '' %>" href="/">Dashboard</a>
+          <a class="<%= path.startsWith('/machines') ? 'active' : '' %>" href="/machines">Machines</a>
+          <a class="<%= path.startsWith('/services') ? 'active' : '' %>" href="/services">Services</a>
+          <a class="<%= path.startsWith('/history') ? 'active' : '' %>" href="/history">History</a>
+          <a class="<%= path.startsWith('/settings') ? 'active' : '' %>" href="/settings">Settings</a>
+        </nav>
+      </aside>
+      <main class="content-wrap">
+        <header class="topbar d-flex justify-content-between align-items-center">
+          <div><h4 class="m-0"><%= title %></h4></div>
+          <form action="/logout" method="post">
+            <span class="me-2 text-muted">Signed in as <%= currentUser %></span>
+            <button class="btn btn-sm btn-outline-light">Logout</button>
+          </form>
+        </header>
+        <section class="content p-4"><%- body %></section>
+      </main>
+    </div>
+  </body>
+</html>

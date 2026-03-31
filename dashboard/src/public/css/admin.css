@@ -1,0 +1,20 @@
+:root { --sidebar:#1f2d3d; --bg:#111827; --panel:#1f2937; }
+body { background: var(--bg); color: #e5e7eb; }
+.app-shell { display:flex; min-height:100vh; }
+.sidebar { width:230px; background:var(--sidebar); padding:20px; }
+.sidebar .brand { font-size:1.4rem; font-weight:700; margin-bottom:20px; }
+.sidebar nav a { display:block; color:#cbd5e1; text-decoration:none; padding:8px 10px; border-radius:6px; margin-bottom:6px; }
+.sidebar nav a.active,.sidebar nav a:hover { background:#334155; color:#fff; }
+.content-wrap { flex:1; }
+.topbar { background:#0b1220; padding:16px 20px; border-bottom:1px solid #374151; }
+.card,.kpi-card { background:var(--panel); border:1px solid #374151; color:#e5e7eb; }
+.kpi-card { border-radius:8px; padding:14px; }
+.kpi-card.success { border-left:4px solid #22c55e; }
+.kpi-card.danger { border-left:4px solid #ef4444; }
+.login-body { display:flex; min-height:100vh; justify-content:center; align-items:center; background:linear-gradient(160deg,#111827,#1f2937); }
+.login-card { width:390px; background:#0f172a; color:#e5e7eb; }
+.table { --bs-table-bg: transparent; --bs-table-color:#e5e7eb; }
+.badge-success { background:#16a34a; }
+.badge-danger { background:#dc2626; }
+.badge-secondary { background:#4b5563; }
+.badge-warning { background:#f59e0b; color:#111827; }
