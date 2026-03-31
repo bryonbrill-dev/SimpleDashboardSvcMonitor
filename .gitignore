@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+*.log
+dashboard/prisma/dev.db
+dashboard/prisma/dev.db-journal
+coverage
+.DS_Store

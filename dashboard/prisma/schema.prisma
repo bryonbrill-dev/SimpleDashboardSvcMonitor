@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum ServiceStatus {
+  UP
+  DOWN
+  UNKNOWN
+  REMOVED
+}
+
+enum EventType {
+  INFO
+  DOWN
+  RESTORED
+  UNREACHABLE
+  CONFIG
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Machine {
+  id         Int                @id @default(autoincrement())
+  name       String
+  host       String
+  port       Int
+  apiKey     String
+  isActive   Boolean            @default(true)
+  createdAt  DateTime           @default(now())
+  removedAt  DateTime?
+  services   MonitoredService[]
+  pollRuns   PollRun[]
+  events     EventLog[]
+}
+
+model MonitoredService {
+  id                  Int                    @id @default(autoincrement())
+  machineId           Int
+  machine             Machine                @relation(fields: [machineId], references: [id])
+  serviceName         String
+  displayName         String?
+  monitoringStartDate DateTime               @default(now())
+  monitoringEndDate   DateTime?
+  currentStatus       ServiceStatus          @default(UNKNOWN)
+  lastCheckedAt       DateTime?
+  lastStateChangeAt   DateTime?
+  isActive            Boolean                @default(true)
+  history             ServiceStatusHistory[]
+  events              EventLog[]
+
+  @@index([machineId, serviceName])
+}
+
+model ServiceStatusHistory {
+  id                 Int              @id @default(autoincrement())
+  monitoredServiceId Int
+  monitoredService   MonitoredService @relation(fields: [monitoredServiceId], references: [id])
+  checkedAt          DateTime         @default(now())
+  status             ServiceStatus
+  isReachable        Boolean
+  errorMessage       String?
+
+  @@index([checkedAt])
+}
+
+model PollRun {
+  id          Int      @id @default(autoincrement())
+  machineId   Int
+  machine     Machine  @relation(fields: [machineId], references: [id])
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  success     Boolean  @default(false)
+  errorMessage String?
+}
+
+model EventLog {
+  id                 Int               @id @default(autoincrement())
+  machineId          Int?
+  monitoredServiceId Int?
+  machine            Machine?          @relation(fields: [machineId], references: [id])
+  monitoredService   MonitoredService? @relation(fields: [monitoredServiceId], references: [id])
+  eventType          EventType
+  message            String
+  createdAt          DateTime          @default(now())
+
+  @@index([createdAt])
+}

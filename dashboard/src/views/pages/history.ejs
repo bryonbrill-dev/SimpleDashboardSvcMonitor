@@ -1,0 +1,30 @@
+<%- include('../partials/header', { title: 'Monitoring History', path, currentUser }) %>
+<div class="card mb-3"><div class="card-body">
+  <form class="row g-2" method="get" action="/history">
+    <div class="col-md-3">
+      <select class="form-select" name="machineId"><option value="">All machines</option>
+        <% machines.forEach((m) => { %><option value="<%= m.id %>" <%= filters.machineId === m.id ? 'selected' : '' %>><%= m.name %></option><% }) %>
+      </select>
+    </div>
+    <div class="col-md-2"><select class="form-select" name="status"><option value="">All status</option><option>UP</option><option>DOWN</option><option>UNKNOWN</option></select></div>
+    <div class="col-md-2"><input class="form-control" type="date" name="dateFrom" value="<%= filters.dateFrom || '' %>" /></div>
+    <div class="col-md-2"><input class="form-control" type="date" name="dateTo" value="<%= filters.dateTo || '' %>" /></div>
+    <div class="col-md-3 d-flex gap-2"><button class="btn btn-primary">Filter</button><a class="btn btn-outline-light" href="/history/export.csv">Export CSV</a></div>
+  </form>
+</div></div>
+<div class="card"><div class="table-responsive"><table class="table table-dark m-0">
+  <thead><tr><th>Checked At</th><th>Machine</th><th>Service</th><th>Status</th><th>Reachable</th><th>Error</th></tr></thead>
+  <tbody>
+    <% history.forEach((row) => { %>
+    <tr>
+      <td><%= row.checkedAt.toISOString() %></td>
+      <td><%= row.monitoredService.machine.name %></td>
+      <td><%= row.monitoredService.serviceName %></td>
+      <td><span class="badge <%= badgeClass(row.status) %>"><%= row.status %></span></td>
+      <td><%= row.isReachable ? 'Yes' : 'No' %></td>
+      <td><%= row.errorMessage || '-' %></td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table></div></div>
+<%- include('../partials/footer') %>
