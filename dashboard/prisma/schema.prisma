@@ -7,21 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum ServiceStatus {
-  UP
-  DOWN
-  UNKNOWN
-  REMOVED
-}
-
-enum EventType {
-  INFO
-  DOWN
-  RESTORED
-  UNREACHABLE
-  CONFIG
-}
-
 model User {
   id           Int      @id @default(autoincrement())
   username     String   @unique
@@ -51,7 +36,7 @@ model MonitoredService {
   displayName         String?
   monitoringStartDate DateTime               @default(now())
   monitoringEndDate   DateTime?
-  currentStatus       ServiceStatus          @default(UNKNOWN)
+  currentStatus       String                 @default("UNKNOWN")
   lastCheckedAt       DateTime?
   lastStateChangeAt   DateTime?
   isActive            Boolean                @default(true)
@@ -66,7 +51,7 @@ model ServiceStatusHistory {
   monitoredServiceId Int
   monitoredService   MonitoredService @relation(fields: [monitoredServiceId], references: [id])
   checkedAt          DateTime         @default(now())
-  status             ServiceStatus
+  status             String
   isReachable        Boolean
   errorMessage       String?
 
@@ -89,7 +74,7 @@ model EventLog {
   monitoredServiceId Int?
   machine            Machine?          @relation(fields: [machineId], references: [id])
   monitoredService   MonitoredService? @relation(fields: [monitoredServiceId], references: [id])
-  eventType          EventType
+  eventType          String
   message            String
   createdAt          DateTime          @default(now())
 

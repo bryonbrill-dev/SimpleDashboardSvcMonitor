@@ -9,6 +9,7 @@
   "scripts": {
     "build": "npm run build -w agent && npm run build -w dashboard",
     "dev": "echo \"Run npm run dev -w agent or npm run dev -w dashboard\"",
-    "format": "echo \"TODO: add prettier\""
+    "format": "echo \"TODO: add prettier\"",
+    "configure-env": "powershell -ExecutionPolicy Bypass -File .\\scripts-configure-env.ps1"
   }
 }

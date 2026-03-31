@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import { PrismaClient, ServiceStatus } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { SERVICE_STATUS } from "../src/types/monitoring";
 
 dotenv.config();
 const prisma = new PrismaClient();
@@ -35,7 +36,7 @@ async function main() {
       machineId: machine.id,
       serviceName: "Spooler",
       displayName: "Print Spooler",
-      currentStatus: ServiceStatus.UNKNOWN,
+      currentStatus: SERVICE_STATUS.UNKNOWN,
       isActive: false
     }
   });
