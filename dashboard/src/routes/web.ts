@@ -22,12 +22,7 @@ const monitoredServiceSchema = z.object({
   displayName: z.string().optional()
 });
 
-const DASHBOARD_WINDOW_OPTIONS = [1, 6, 24, 72, 168] as const;
-const dashboardQuerySchema = z.object({
-  serviceId: z.coerce.number().int().positive().optional(),
-  eventType: z.string().trim().min(1).optional(),
-  windowHours: z.coerce.number().int().optional()
-});
+const DASHBOARD_WINDOW_HOURS = 24;
 
 export const webRouter = Router();
 
@@ -69,34 +64,31 @@ webRouter.post("/logout", requireAuth, (req, res) => {
 });
 
 webRouter.get("/", requireAuth, async (req, res) => {
-  const parsedFilters = dashboardQuerySchema.safeParse(req.query);
-  const filterInput = parsedFilters.success ? parsedFilters.data : {};
-  const windowHours = DASHBOARD_WINDOW_OPTIONS.includes(filterInput.windowHours as (typeof DASHBOARD_WINDOW_OPTIONS)[number])
-    ? filterInput.windowHours!
-    : 24;
+  const windowHours = DASHBOARD_WINDOW_HOURS;
   const windowStart = new Date(Date.now() - windowHours * 60 * 60 * 1000);
 
-  const [machines, services, downCount, upCount, lastPoll, activeServices, rawEvents, statusHistory] = await Promise.all([
+  const [machines, services, downCount, upCount, lastPoll, rawEvents, statusHistory] = await Promise.all([
     prisma.machine.count({ where: { isActive: true } }),
     prisma.monitoredService.count({ where: { isActive: true } }),
     prisma.monitoredService.count({ where: { isActive: true, currentStatus: SERVICE_STATUS.DOWN } }),
     prisma.monitoredService.count({ where: { isActive: true, currentStatus: SERVICE_STATUS.UP } }),
     prisma.pollRun.findFirst({ where: { success: true }, orderBy: { completedAt: "desc" } }),
-    prisma.monitoredService.findMany({ where: { isActive: true }, include: { machine: true }, orderBy: [{ machine: { name: "asc" } }, { serviceName: "asc" }] }),
     prisma.eventLog.findMany({
       take: 100,
       orderBy: { createdAt: "desc" },
       where: {
         createdAt: { gte: windowStart },
-        monitoredServiceId: filterInput.serviceId,
-        eventType: filterInput.eventType
+        OR: [
+          { monitoredServiceId: null },
+          { monitoredService: { isActive: true } }
+        ]
       },
       include: { machine: true, monitoredService: true }
     }),
     prisma.serviceStatusHistory.findMany({
       where: {
         checkedAt: { gte: windowStart },
-        monitoredServiceId: filterInput.serviceId
+        monitoredService: { isActive: true }
       },
       include: { monitoredService: { include: { machine: true } } },
       orderBy: { checkedAt: "asc" },
@@ -104,11 +96,12 @@ webRouter.get("/", requireAuth, async (req, res) => {
     })
   ]);
 
-  const timelineServiceMap = new Map<number, {
+  const timelineServiceMap = new Map<string, {
     id: number;
     machineName: string;
     serviceName: string;
     displayName: string;
+    monitoringStartDate: Date;
     points: Array<{ checkedAtIso: string; status: string; left: number }>;
   }>();
 
@@ -116,15 +109,22 @@ webRouter.get("/", requireAuth, async (req, res) => {
     const service = point.monitoredService;
     const safeSpanMs = Math.max(1, Date.now() - windowStart.getTime());
     const left = Math.min(100, Math.max(0, ((point.checkedAt.getTime() - windowStart.getTime()) / safeSpanMs) * 100));
-    const existing = timelineServiceMap.get(service.id);
+    const dedupeKey = `${service.machineId}:${service.serviceName.toLowerCase()}`;
+    const existing = timelineServiceMap.get(dedupeKey);
     if (existing) {
+      if (service.monitoringStartDate > existing.monitoringStartDate) {
+        existing.id = service.id;
+        existing.displayName = service.displayName || service.serviceName;
+        existing.monitoringStartDate = service.monitoringStartDate;
+      }
       existing.points.push({ checkedAtIso: point.checkedAt.toISOString(), status: point.status, left: Number(left.toFixed(2)) });
     } else {
-      timelineServiceMap.set(service.id, {
+      timelineServiceMap.set(dedupeKey, {
         id: service.id,
         machineName: service.machine.name,
         serviceName: service.serviceName,
         displayName: service.displayName || service.serviceName,
+        monitoringStartDate: service.monitoringStartDate,
         points: [{ checkedAtIso: point.checkedAt.toISOString(), status: point.status, left: Number(left.toFixed(2)) }]
       });
     }
@@ -132,8 +132,6 @@ webRouter.get("/", requireAuth, async (req, res) => {
 
   const timelineRows = Array.from(timelineServiceMap.values())
     .sort((a, b) => a.machineName.localeCompare(b.machineName) || a.displayName.localeCompare(b.displayName));
-
-  const eventTypeOptions = Array.from(new Set(rawEvents.map((event) => event.eventType))).sort((a, b) => a.localeCompare(b));
 
   res.render("pages/dashboard", {
     stats: {
@@ -143,17 +141,7 @@ webRouter.get("/", requireAuth, async (req, res) => {
       upCount,
       lastPoll: lastPoll?.completedAt
     },
-    filters: {
-      serviceId: filterInput.serviceId,
-      eventType: filterInput.eventType,
-      windowHours,
-      windowOptions: DASHBOARD_WINDOW_OPTIONS
-    },
-    servicesForFilter: activeServices.map((svc) => ({
-      id: svc.id,
-      name: `${svc.machine.name} • ${svc.displayName || svc.serviceName}`
-    })),
-    eventTypeOptions,
+    windowHours,
     events: rawEvents,
     timelineRows,
     timelineStartIso: windowStart.toISOString()
