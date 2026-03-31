@@ -1,4 +1,4 @@
-import { ServiceStatus } from "@prisma/client";
+import { ServiceStatus } from "../types/monitoring";
 
 export function statusBadgeClass(status: ServiceStatus) {
   switch (status) {

@@ -1,12 +1,12 @@
-import { EventType, ServiceStatus } from "@prisma/client";
+import { EVENT_TYPE, SERVICE_STATUS, ServiceStatus } from "../types/monitoring";
 import fetch from "node-fetch";
 import { prisma } from "../config/prisma";
 
 function toStatus(value?: string): ServiceStatus {
   const normalized = (value ?? "").toUpperCase();
-  if (normalized === "UP") return ServiceStatus.UP;
-  if (normalized === "DOWN") return ServiceStatus.DOWN;
-  return ServiceStatus.UNKNOWN;
+  if (normalized === "UP") return SERVICE_STATUS.UP;
+  if (normalized === "DOWN") return SERVICE_STATUS.DOWN;
+  return SERVICE_STATUS.UNKNOWN;
 }
 
 export async function pollMachine(machineId: number): Promise<void> {
@@ -29,7 +29,7 @@ export async function pollMachine(machineId: number): Promise<void> {
     }
 
     for (const svc of machine.services) {
-      let status = ServiceStatus.UNKNOWN;
+      let status = SERVICE_STATUS.UNKNOWN;
       let reachable = true;
       let errorMessage: string | undefined;
       try {
@@ -39,7 +39,7 @@ export async function pollMachine(machineId: number): Promise<void> {
         );
 
         if (serviceResp.status === 404) {
-          status = ServiceStatus.DOWN;
+          status = SERVICE_STATUS.DOWN;
           errorMessage = "Service not found on agent";
         } else if (!serviceResp.ok) {
           throw new Error(`Service lookup failed: HTTP ${serviceResp.status}`);
@@ -49,7 +49,7 @@ export async function pollMachine(machineId: number): Promise<void> {
         }
       } catch (error) {
         reachable = false;
-        status = ServiceStatus.DOWN;
+        status = SERVICE_STATUS.DOWN;
         errorMessage = error instanceof Error ? error.message : "Unknown polling error";
       }
 
@@ -75,7 +75,7 @@ export async function pollMachine(machineId: number): Promise<void> {
       });
 
       if (changed) {
-        const eventType = status === ServiceStatus.DOWN ? EventType.DOWN : EventType.RESTORED;
+        const eventType = status === SERVICE_STATUS.DOWN ? EVENT_TYPE.DOWN : EVENT_TYPE.RESTORED;
         await prisma.eventLog.create({
           data: {
             machineId: machine.id,
@@ -100,7 +100,7 @@ export async function pollMachine(machineId: number): Promise<void> {
     await prisma.eventLog.create({
       data: {
         machineId: machine.id,
-        eventType: EventType.UNREACHABLE,
+        eventType: EVENT_TYPE.UNREACHABLE,
         message: `Machine poll failed: ${message}`
       }
     });

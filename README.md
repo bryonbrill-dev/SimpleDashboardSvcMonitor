@@ -81,11 +81,25 @@ From repository root:
 npm install
 ```
 
-### 2) Configure env files
+### 2) Configure env files (Windows-native)
 
-```bash
-cp agent/.env.example agent/.env
-cp dashboard/.env.example dashboard/.env
+Use the included PowerShell script (default extraction path: `C:\SimpleDashboardSvcMonitor-main`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts-configure-env.ps1
+```
+
+If you extracted to a different folder, pass `-RootPath`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts-configure-env.ps1 -RootPath "D:\Apps\SimpleDashboardSvcMonitor-main"
+```
+
+Or run equivalent Command Prompt copy commands manually:
+
+```cmd
+copy agent\.env.example agent\.env
+copy dashboard\.env.example dashboard\.env
 ```
 
 ### 3) Database setup (Dashboard)

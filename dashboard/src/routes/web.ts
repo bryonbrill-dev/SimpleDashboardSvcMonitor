@@ -1,10 +1,10 @@
-import { ServiceStatus } from "@prisma/client";
 import { stringify } from "csv-stringify/sync";
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../config/prisma";
 import { requireAuth } from "../middleware/authMiddleware";
 import { authenticate } from "../services/authService";
+import { SERVICE_STATUS, ServiceStatus } from "../types/monitoring";
 import { statusBadgeClass } from "../utils/status";
 
 const loginSchema = z.object({ username: z.string().min(1), password: z.string().min(1) });
@@ -65,8 +65,8 @@ webRouter.get("/", requireAuth, async (_req, res) => {
   const [machines, services, downCount, upCount, lastPoll, events] = await Promise.all([
     prisma.machine.count({ where: { isActive: true } }),
     prisma.monitoredService.count({ where: { isActive: true } }),
-    prisma.monitoredService.count({ where: { isActive: true, currentStatus: ServiceStatus.DOWN } }),
-    prisma.monitoredService.count({ where: { isActive: true, currentStatus: ServiceStatus.UP } }),
+    prisma.monitoredService.count({ where: { isActive: true, currentStatus: SERVICE_STATUS.DOWN } }),
+    prisma.monitoredService.count({ where: { isActive: true, currentStatus: SERVICE_STATUS.UP } }),
     prisma.pollRun.findFirst({ where: { success: true }, orderBy: { completedAt: "desc" } }),
     prisma.eventLog.findMany({ take: 10, orderBy: { createdAt: "desc" }, include: { machine: true, monitoredService: true } })
   ]);
@@ -192,7 +192,7 @@ webRouter.post("/services/:id/remove", requireAuth, async (req, res) => {
     data: {
       isActive: false,
       monitoringEndDate: new Date(),
-      currentStatus: ServiceStatus.REMOVED
+      currentStatus: SERVICE_STATUS.REMOVED
     }
   });
   res.redirect("/services");
