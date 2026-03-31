@@ -21,7 +21,7 @@
         <tr>
           <td><%= machine.name %></td><td><%= machine.host %></td><td><%= machine.port %></td>
           <td><span class="badge <%= machine.isActive ? 'bg-success' : 'bg-secondary' %>"><%= machine.isActive ? 'Active' : 'Removed' %></span></td>
-          <td><%= machine.createdAt.toISOString() %></td>
+          <td><%= formatDateTime(machine.createdAt) %></td>
           <td>
             <% if (machine.isActive) { %>
             <form method="post" action="/machines/<%= machine.id %>/remove" onsubmit="return confirm('Deactivate machine?')">

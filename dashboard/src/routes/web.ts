@@ -4,7 +4,8 @@ import { z } from "zod";
 import { prisma } from "../config/prisma";
 import { requireAuth } from "../middleware/authMiddleware";
 import { authenticate } from "../services/authService";
-import { SERVICE_STATUS, ServiceStatus } from "../types/monitoring";
+import type { ServiceStatus } from "../types/monitoring";
+import { SERVICE_STATUS } from "../types/monitoring";
 import { statusBadgeClass } from "../utils/status";
 
 const loginSchema = z.object({ username: z.string().min(1), password: z.string().min(1) });
@@ -22,7 +23,22 @@ const monitoredServiceSchema = z.object({
   displayName: z.string().optional()
 });
 
-const DASHBOARD_WINDOW_HOURS = 24;
+const DASHBOARD_WINDOW_DAYS = 7;
+
+const formatDateTime = (value?: Date | string | null) => {
+  if (!value) return "Never";
+  const dateValue = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(dateValue.getTime())) return String(value);
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  }).format(dateValue);
+};
 
 export const webRouter = Router();
 
@@ -30,6 +46,7 @@ webRouter.use((req, res, next) => {
   res.locals.path = req.path;
   res.locals.badgeClass = statusBadgeClass;
   res.locals.currentUser = req.session.username;
+  res.locals.formatDateTime = formatDateTime;
   next();
 });
 
@@ -64,8 +81,8 @@ webRouter.post("/logout", requireAuth, (req, res) => {
 });
 
 webRouter.get("/", requireAuth, async (req, res) => {
-  const windowHours = DASHBOARD_WINDOW_HOURS;
-  const windowStart = new Date(Date.now() - windowHours * 60 * 60 * 1000);
+  const windowDays = DASHBOARD_WINDOW_DAYS;
+  const windowStart = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
 
   const [machines, services, downCount, upCount, lastPoll, rawEvents, statusHistory] = await Promise.all([
     prisma.machine.count({ where: { isActive: true } }),
@@ -131,6 +148,24 @@ webRouter.get("/", requireAuth, async (req, res) => {
   }
 
   const timelineRows = Array.from(timelineServiceMap.values())
+    .map((row) => {
+      let upPoints = 0;
+      let downPoints = 0;
+      for (const point of row.points) {
+        if (point.status === SERVICE_STATUS.UP) upPoints += 1;
+        if (point.status === SERVICE_STATUS.DOWN) downPoints += 1;
+      }
+      const upDownTotal = upPoints + downPoints;
+      const upPercent = upDownTotal ? (upPoints / upDownTotal) * 100 : 0;
+      const downPercent = upDownTotal ? (downPoints / upDownTotal) * 100 : 0;
+      return {
+        ...row,
+        upPoints,
+        downPoints,
+        upPercent: Number(upPercent.toFixed(1)),
+        downPercent: Number(downPercent.toFixed(1))
+      };
+    })
     .sort((a, b) => a.machineName.localeCompare(b.machineName) || a.displayName.localeCompare(b.displayName));
 
   res.render("pages/dashboard", {
@@ -141,10 +176,11 @@ webRouter.get("/", requireAuth, async (req, res) => {
       upCount,
       lastPoll: lastPoll?.completedAt
     },
-    windowHours,
+    windowDays,
     events: rawEvents,
     timelineRows,
-    timelineStartIso: windowStart.toISOString()
+    timelineStartIso: windowStart.toISOString(),
+    timelineStartDisplay: formatDateTime(windowStart)
   });
 });
 

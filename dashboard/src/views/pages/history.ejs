@@ -17,7 +17,7 @@
   <tbody>
     <% history.forEach((row) => { %>
     <tr>
-      <td><%= row.checkedAt.toISOString() %></td>
+      <td><%= formatDateTime(row.checkedAt) %></td>
       <td><%= row.monitoredService.machine.name %></td>
       <td><%= row.monitoredService.serviceName %></td>
       <td><span class="badge <%= badgeClass(row.status) %>"><%= row.status %></span></td>

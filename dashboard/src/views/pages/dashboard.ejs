@@ -4,14 +4,14 @@
   <div class="col-md-2"><div class="kpi-card"><h6>Services</h6><h3><%= stats.services %></h3></div></div>
   <div class="col-md-2"><div class="kpi-card success"><h6>UP</h6><h3><%= stats.upCount %></h3></div></div>
   <div class="col-md-2"><div class="kpi-card danger"><h6>DOWN</h6><h3><%= stats.downCount %></h3></div></div>
-  <div class="col-md-4"><div class="kpi-card"><h6>Last Successful Poll</h6><h6><%= stats.lastPoll ? stats.lastPoll.toISOString() : 'Never' %></h6></div></div>
+  <div class="col-md-4"><div class="kpi-card"><h6>Last Successful Poll</h6><h6><%= formatDateTime(stats.lastPoll) %></h6></div></div>
 </div>
 
 
 <div class="card mb-4">
   <div class="card-header d-flex justify-content-between">
-    <span>Service Timeline (<%= windowHours %>h)</span>
-    <span class="text-secondary small">Window start: <%= timelineStartIso %></span>
+    <span>Service Timeline (Previous <%= windowDays %> days)</span>
+    <span class="text-secondary small">Window start: <%= timelineStartDisplay %></span>
   </div>
   <div class="card-body timeline-wrapper">
     <% if (!timelineRows.length) { %>
@@ -19,14 +19,27 @@
     <% } %>
     <% timelineRows.forEach((row) => { %>
       <div class="timeline-row mb-3">
-        <div class="timeline-label"><strong><%= row.machineName %></strong><br /><span><%= row.displayName %></span><br /><span class="text-secondary small"><%= row.serviceName %></span></div>
+        <div class="timeline-label">
+          <strong><%= row.machineName %></strong><br />
+          <span><%= row.displayName %></span><br />
+          <span class="text-secondary small"><%= row.serviceName %></span>
+          <div class="timeline-metrics mt-2">
+            <span
+              class="uptime-pie"
+              role="img"
+              aria-label="Uptime distribution: <%= row.upPercent %>% up and <%= row.downPercent %>% down"
+              style="--up: <%= row.upPercent %>%"
+            ></span>
+            <span class="text-secondary small"><span class="text-success"><%= row.upPercent %>% Up</span> / <span class="text-danger"><%= row.downPercent %>% Down</span></span>
+          </div>
+        </div>
         <div class="timeline-track" role="img" aria-label="Timeline for <%= row.machineName %> <%= row.displayName %> (<%= row.serviceName %>)">
           <% row.points.forEach((point) => { %>
             <span
               class="timeline-point <%= badgeClass(point.status) %>"
               style="left: <%= point.left %>%"
-              title="<%= point.checkedAtIso %> - <%= point.status %>"
-              data-tooltip="<%= point.checkedAtIso %> - <%= point.status %>"
+              title="<%= formatDateTime(point.checkedAtIso) %> - <%= point.status %>"
+              data-tooltip="<%= formatDateTime(point.checkedAtIso) %> - <%= point.status %>"
             ></span>
           <% }) %>
         </div>
@@ -43,7 +56,7 @@
       <tbody>
         <% events.forEach((event) => { %>
         <tr>
-          <td><%= event.createdAt.toISOString() %></td>
+          <td><%= formatDateTime(event.createdAt) %></td>
           <td><%= event.machine?.name || '-' %></td>
           <td><%= event.monitoredService?.serviceName || '-' %></td>
           <td><span class="badge bg-info"><%= event.eventType %></span></td>

@@ -41,8 +41,8 @@
           <td><%= svc.machine.name %></td>
           <td><%= svc.serviceName %> <div class="text-muted small"><%= svc.displayName || '' %></div></td>
           <td><span class="badge <%= badgeClass(svc.currentStatus) %>"><%= svc.currentStatus %></span></td>
-          <td><%= svc.monitoringStartDate.toISOString() %></td>
-          <td><%= svc.lastCheckedAt ? svc.lastCheckedAt.toISOString() : '-' %></td>
+          <td><%= formatDateTime(svc.monitoringStartDate) %></td>
+          <td><%= svc.lastCheckedAt ? formatDateTime(svc.lastCheckedAt) : '-' %></td>
           <td>
             <% if (svc.isActive) { %>
             <form method="post" action="/services/<%= svc.id %>/remove" onsubmit="return confirm('Remove monitored service?')"><button class="btn btn-sm btn-danger">Remove</button></form>
