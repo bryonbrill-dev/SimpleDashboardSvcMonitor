@@ -8,7 +8,7 @@
 </div>
 
 <div class="card mb-4">
-  <div class="card-header">Timeline Filters</div>
+  <div class="card-header">Timeline Options</div>
   <div class="card-body">
     <form id="dashboard-filters" class="row g-3 align-items-end" method="get" action="/">
       <div class="col-lg-4">
@@ -37,10 +37,6 @@
           <% }) %>
         </select>
       </div>
-      <div class="col-lg-2 d-grid gap-2 d-lg-flex justify-content-lg-end">
-        <button class="btn btn-sm btn-primary" type="submit">Apply</button>
-        <a class="btn btn-sm btn-outline-light" href="/">Reset</a>
-      </div>
     </form>
   </div>
 </div>
@@ -59,7 +55,12 @@
         <div class="timeline-label"><strong><%= row.machineName %></strong><br /><span class="text-secondary"><%= row.displayName %></span></div>
         <div class="timeline-track" role="img" aria-label="Timeline for <%= row.displayName %>">
           <% row.points.forEach((point) => { %>
-            <span class="timeline-point <%= badgeClass(point.status) %>" style="left: <%= point.left %>%" title="<%= point.checkedAtIso %> - <%= point.status %>"></span>
+            <span
+              class="timeline-point <%= badgeClass(point.status) %>"
+              style="left: <%= point.left %>%"
+              title="<%= point.checkedAtIso %> - <%= point.status %>"
+              data-tooltip="<%= point.checkedAtIso %> - <%= point.status %>"
+            ></span>
           <% }) %>
         </div>
       </div>
