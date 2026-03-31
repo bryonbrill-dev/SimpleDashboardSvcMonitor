@@ -18,3 +18,27 @@ body { background: var(--bg); color: #e5e7eb; }
 .badge-danger { background:#dc2626; }
 .badge-secondary { background:#4b5563; }
 .badge-warning { background:#f59e0b; color:#111827; }
+
+.timeline-wrapper { max-height: 420px; overflow-y: auto; }
+.timeline-row { display: grid; grid-template-columns: 260px 1fr; gap: 14px; align-items: center; }
+.timeline-label { font-size: 0.85rem; line-height: 1.15rem; }
+.timeline-track {
+  position: relative;
+  height: 24px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(148,163,184,0.15), rgba(148,163,184,0.3));
+  border: 1px solid #334155;
+}
+.timeline-point {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255,255,255,0.35);
+}
+
+@media (max-width: 992px) {
+  .timeline-row { grid-template-columns: 1fr; }
+}
